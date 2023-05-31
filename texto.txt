@@ -2,6 +2,7 @@ DENTO DO BANCO
 sample_mflix
 
 EX 1----------
+
 db.movies.aggregate([
     { $match: { year: 2000} },
     { $project: {
@@ -12,6 +13,7 @@ db.movies.aggregate([
 ]);
 
 EX 2----------
+
 db.movies.aggregate([
     { $match: { year: { $lt: 2000 } } },
     { $project: {
@@ -22,6 +24,7 @@ db.movies.aggregate([
 ]);
 
 EX 3----------
+
 db.movies.aggregate([
     { $match: { year: { $gte:1995, $lte: 2000 } } },
     { $project: {
@@ -32,6 +35,7 @@ db.movies.aggregate([
 ]);
 
 EX 4----------
+
 db.movies.aggregate([
     { $match: { 'awards.wins': { $gte: 1}, } },
     { $project: {
@@ -42,6 +46,7 @@ db.movies.aggregate([
 ]);
 
 EX 5----------
+
 db.movies.aggregate([
     { $match: { 'awards.wins': { $gte: 1},
                 year: { $gte:1995, $lte: 2000}
@@ -54,6 +59,7 @@ db.movies.aggregate([
 ]);
 
 EX 6----------
+
 db.movies.aggregate([
     { $match: { genres: "Drama",
                 'imdb.rating': { $gt: 5 }
@@ -69,6 +75,7 @@ db.movies.aggregate([
 
 ===========================================
 Exibir todos os filmes do ano 2000 do nota mais alta para o mais baixa e em ordem alfabetica
+
 db.movies.aggregate([
     { $match: { year: 2000 } }, 
     { $project: {
@@ -81,6 +88,8 @@ db.movies.aggregate([
 ]);
 
 ----------
+?????????????????????
+
 db.movies.aggregate([
     { $group: { _id: '$genres', qtde: { $sum: 1 } }},
     { $project: { generos: '$_id', qtde: 1, _id: 0}}
@@ -88,9 +97,67 @@ db.movies.aggregate([
 
 ----------
 Exibir o tanto de filmes de cada genero em ordem alfabetica
+
 db.movies.aggregate([
     { $unwind: '$genres' },
     { $group: { _id: '$genres', qtde: { $sum: 1 } }},
     { $project: { generos: '$_id', qtde: 1, _id: 0}},
     { $sort: { generos: 1} }
+]);
+
+----------
+Exibir os que tem pelo menos 1 comentario
+
+db.movies.aggregate([
+    { $match: {num_mflix_comments: { $gte: 1} } },
+    { $project: { titulo: 'title', comentarios: '$num_mflix_comments'}}
+]);
+
+----------
+Exibir apenas o filme que tem mais comentarios
+
+db.movies.aggregate([
+    { $match: {num_mflix_comments: { $gte: 1} } },
+    { $project: { titulo: 'title', comentarios: '$num_mflix_comments'}}
+    { $sort: {comentarios: -1 } },
+    { $limit: 1}
+]);
+
+----------
+Exibir quantos filmes tem comentarios
+
+db.movies.aggregate([
+    { $match: {num_mflix_comments: { $gte: 1} } },
+    { $count: 'num_mflix_comments' }
+]);
+
+----------
+Exibir o maior valor do campo de comentarios
+
+db.movies.aggregate([
+    { $group: { _id: '', max_comments: { $max: '$num_mflix_comments'} } }
+]);
+
+----------
+Exibir o filme com a maior nota
+
+db.movies.aggregate([
+    { $match: {'imdb.rating': { $ne: ''} } },
+    { $sort: {'imdb.rating': -1 } },
+    { $limit: 1}
+]);
+
+----------
+Exibir os dados dos filme que tem pelo menos 1 comentario
+
+db.movies.aggregate([
+    { $match: { 'num_mflix_comments': { $gte: 1} } },
+    {
+        $lookup: {
+            from: 'comments',
+            localField: '_id',
+            foreignField: 'movie_id',
+            as: 'comentario'
+        }
+    }
 ]);
