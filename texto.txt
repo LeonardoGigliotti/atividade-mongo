@@ -1,0 +1,96 @@
+DENTO DO BANCO 
+sample_mflix
+
+EX 1----------
+db.movies.aggregate([
+    { $match: { year: 2000} },
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        sinopse: '$plot'
+    } }
+]);
+
+EX 2----------
+db.movies.aggregate([
+    { $match: { year: { $lt: 2000 } } },
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        sinopse: '$plot'
+    } }
+]);
+
+EX 3----------
+db.movies.aggregate([
+    { $match: { year: { $gte:1995, $lte: 2000 } } },
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        sinopse: '$plot'
+    } }
+]);
+
+EX 4----------
+db.movies.aggregate([
+    { $match: { 'awards.wins': { $gte: 1}, } },
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        premios: '$awards.wins'
+    } }
+]);
+
+EX 5----------
+db.movies.aggregate([
+    { $match: { 'awards.wins': { $gte: 1},
+                year: { $gte:1995, $lte: 2000}
+    } },
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        premios: '$awards.wins'
+    } }
+]);
+
+EX 6----------
+db.movies.aggregate([
+    { $match: { genres: "Drama",
+                'imdb.rating': { $gt: 5 }
+                }
+    },
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        genero: '$genres',
+        imdb: '$imdb.rating'
+    } }
+]);
+
+===========================================
+Exibir todos os filmes do ano 2000 do nota mais alta para o mais baixa e em ordem alfabetica
+db.movies.aggregate([
+    { $match: { year: 2000 } }, 
+    { $project: {
+        titulo: '$title',
+        ano: '$year',
+        genero: '$genres',
+        imdb: '$imdb.rating'
+    } },
+    { $sort: { 'imdb': -1, 'titulo': 1} }
+]);
+
+----------
+db.movies.aggregate([
+    { $group: { _id: '$genres', qtde: { $sum: 1 } }},
+    { $project: { generos: '$_id', qtde: 1, _id: 0}}
+]);
+
+----------
+Exibir o tanto de filmes de cada genero em ordem alfabetica
+db.movies.aggregate([
+    { $unwind: '$genres' },
+    { $group: { _id: '$genres', qtde: { $sum: 1 } }},
+    { $project: { generos: '$_id', qtde: 1, _id: 0}},
+    { $sort: { generos: 1} }
+]);
